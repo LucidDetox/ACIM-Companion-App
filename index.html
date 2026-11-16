@@ -411,10 +411,14 @@ body.is-practice .tabbar{ display:none; }
 }
 .ym{ aspect-ratio:1; border-radius:50%; background:var(--surface-2); cursor:pointer; }
 :root{ --tick:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2.2 5.3l2 2 3.6-4.2' fill='none' stroke='%23513E21' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-.ym.is-review{ border-radius:3px; box-shadow:inset 0 0 0 1.5px var(--ink-2); }
+.ym.is-review{ border-radius:3px; }
 .ym.is-done{ background:var(--gold) var(--tick) center/72% no-repeat; }
 .ym.is-current{ border-radius:0; clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%); transform:scale(1.4); position:relative; z-index:1; background:var(--lapis); }
 .ym.is-current.is-done{ background:var(--gold) var(--tick) center/55% no-repeat; }
+.ym.has-journal{ position:relative; }
+.ym.has-journal::after{ content:''; position:absolute; top:-14%; right:-14%; width:38%; height:38%; border-radius:50%; background:var(--lapis); box-shadow:0 0 0 1px var(--paper); }
+.ym.is-current.has-journal::after{ top:16%; right:30%; }
+.legend i.l-journal{ width:7px; height:7px; background:var(--lapis); }
 .stat-link{ cursor:pointer; }
 .stat-link dd::after{ content:' \203A'; color:var(--ink-2); }
 .stat-link:hover dt, .stat-link:focus-visible dt{ color:var(--ink); }
@@ -423,7 +427,7 @@ body.is-practice .tabbar{ display:none; }
 .legend span{ display:inline-flex; align-items:center; gap:7px; }
 .legend i{ width:12px; height:12px; border-radius:50%; background:var(--surface-2); display:inline-block; }
 .legend i.l-done{ background:var(--gold) var(--tick) center/72% no-repeat; }
-.legend i.l-review{ border-radius:3px; box-shadow:inset 0 0 0 1.5px var(--ink-2); }
+.legend i.l-review{ border-radius:3px; }
 .legend i.l-current{ width:14px; height:14px; border-radius:0; clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%); background:var(--lapis); box-shadow:none; }
 .stats{ margin:0; }
 .stats div{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:13px 0; }
@@ -562,9 +566,23 @@ body.is-practice .tabbar{ display:none; }
 .dial-check{display:flex;align-items:center;justify-content:center;color:#F5D89B;filter:drop-shadow(0 0 12px rgba(245,216,155,.3));animation:seal-arrive .45s ease-out;}
 .dial-check[hidden],.dial-num[hidden]{display:none;}
 @keyframes check-draw{from{stroke-dashoffset:1;}to{stroke-dashoffset:0;}}
+.dial .dial-check svg{width:72px;height:72px;transform:none;overflow:visible;}
 .dial-check svg path{stroke-dasharray:1;stroke-dashoffset:0;}
-.dial-check:not([hidden]) svg path{animation:check-draw .55s .1s ease-out both;}
-@media(prefers-reduced-motion:reduce){.dial-check{animation:none;}.dial-check svg path{animation:none !important;}}
+.dial-check:not([hidden]) svg path{animation:check-draw 1s .1s ease-in-out both,check-glow .6s 1.1s ease-out both;}
+@keyframes check-glow{0%,100%{filter:drop-shadow(0 0 0 rgba(255,236,170,0));}35%{filter:drop-shadow(0 0 10px #FFF1C2) brightness(1.6);}}
+.dial-check .fx{opacity:0;}
+.vt-swipe::view-transition-old(root){ animation:.5s cubic-bezier(.4,0,.2,1) both vt-out; }
+.vt-swipe::view-transition-new(root){ animation:.5s cubic-bezier(.4,0,.2,1) both vt-in; }
+@keyframes vt-out{ to{ transform:translateX(100%); } }
+@keyframes vt-in{ from{ transform:translateX(-30%); opacity:.5; } }
+.dial-check .fuse{display:none;offset-path:path('M20 42L34 56L61 24');offset-rotate:0deg;filter:drop-shadow(0 0 4px #FFE9A8);}
+@supports (offset-path:path('M0 0')){.dial-check:not([hidden]) .fuse{display:block;animation:fuse 1s .1s ease-in-out forwards;}}
+@keyframes fuse{0%{offset-distance:0%;opacity:1;}88%{opacity:1;}100%{offset-distance:100%;opacity:0;}}
+.dial-check:not([hidden]) .ring{transform-box:fill-box;transform-origin:center;animation:ring-out .7s 1.1s ease-out forwards;}
+@keyframes ring-out{0%{opacity:.9;transform:scale(.6);}100%{opacity:0;transform:scale(3.4);}}
+.dial-check:not([hidden]) .sp{animation:sp-out .6s 1.05s ease-out forwards;}
+@keyframes sp-out{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2);}}
+@media(prefers-reduced-motion:reduce){.dial-check{animation:none;}.dial-check svg path{animation:none !important;}.dial-check .fx{display:none !important;}}
 </style>
 </head>
 <body>
@@ -640,7 +658,7 @@ body.is-practice .tabbar{ display:none; }
         </svg>
         <div class="dial-center">
           <div class="dial-num" id="dial-num">05:00</div>
-          <div class="dial-check" id="dial-check" hidden aria-hidden="true"><svg width="72" height="72" viewBox="0 0 80 80" fill="none"><path pathLength="1" d="M20 42L34 56L61 24" stroke="#F5D89B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="dial-check" id="dial-check" hidden aria-hidden="true"><svg width="72" height="72" viewBox="0 0 80 80" fill="none"><path pathLength="1" d="M20 42L34 56L61 24" stroke="#F5D89B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle class="fx ring" cx="40" cy="40" r="10" fill="none" stroke="#F5D89B" stroke-width="2"/><circle class="fx fuse" r="3.4" fill="#FFF6DC"/><circle class="fx sp" cx="61" cy="24" r="1.7" fill="#FFF1C2" style="--dx:12px;--dy:-12px"/><circle class="fx sp" cx="61" cy="24" r="1.4" fill="#F5D89B" style="--dx:16px;--dy:0px"/><circle class="fx sp" cx="61" cy="24" r="1.7" fill="#FFF1C2" style="--dx:8px;--dy:-18px"/><circle class="fx sp" cx="61" cy="24" r="1.4" fill="#F5D89B" style="--dx:-2px;--dy:-16px"/><circle class="fx sp" cx="61" cy="24" r="1.7" fill="#FFF1C2" style="--dx:14px;--dy:-6px"/><circle class="fx sp" cx="61" cy="24" r="1.4" fill="#F5D89B" style="--dx:4px;--dy:-20px"/></svg></div>
           <div class="dial-state" id="dial-state">Ready</div>
         </div>
       </div>
@@ -701,6 +719,7 @@ body.is-practice .tabbar{ display:none; }
         <span><i class="l-done"></i>Practiced</span>
         <span><i class="l-current"></i>Current lesson</span>
         <span><i class="l-review"></i>Review lesson</span>
+        <span><i class="l-journal"></i>Has a reflection</span>
       </div>
 
       <h2 class="group-label">So far</h2>
@@ -3387,6 +3406,21 @@ function beginTimer(){
 function pauseTimer(){ stopTicking(); releaseWakeLock(); bbStop(); }
 function toggleTimer(){ T.running ? pauseTimer() : beginTimer(); }
 function resetTimer(){ pauseTimer(); setupPractice(T.period, Math.round(T.total/60)); }
+// Slides the old screen away to the right and the new one in from the left.
+// Falls back to a plain switch if the browser can't animate it.
+function swipeTo(screen){
+  let done = false;
+  const doGo = ()=>{ if(done) return; done = true; go(screen); };
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!document.startViewTransition || reduce){ doGo(); return; }
+  const root = document.documentElement;
+  try{
+    root.classList.add('vt-swipe');
+    const t = document.startViewTransition(doGo);
+    t.finished.catch(()=>{}).finally(()=>root.classList.remove('vt-swipe'));
+    setTimeout(doGo, 800);   // safety net if the transition never calls back
+  }catch(e){ root.classList.remove('vt-swipe'); doGo(); }
+}
 function finishTimer(){
   if(T.finished) return;
   clearTimeout(T.endTimeout);
@@ -3398,6 +3432,12 @@ function finishTimer(){
   bbStop(8);
   if(amb) ambientStop(10);
   maybeThank();
+  // Return to the Today screen 15 seconds after completion, unless you're busy.
+  clearTimeout(T.homeT);
+  T.homeT = setTimeout(()=>{
+    const a = document.activeElement;
+    if(currentScreen==='practice' && T.finished && !(a && a.matches && a.matches('textarea,input[type=text],input[type=search],[contenteditable=true]'))) swipeTo('today');
+  }, 15000);
   $('practice-done').textContent = 'Carry today’s lesson with you.';
   renderTimer();
 }
@@ -3619,9 +3659,10 @@ function computeStreak(){
 function renderProgress(){
   const done = new Set(progress.completedLessons);
   const cur = currentLessonNumber();
+  const wrote = new Set(progress.journal.map(e=>e.lessonNum));
   let cells = '';
   for(let n=1;n<=365;n++){
-    cells += `<span class="ym${isReviewLesson(n)?' is-review':''}${done.has(n)?' is-done':''}${n===cur?' is-current':''}" data-lesson="${n}" title="Lesson ${n}"></span>`;
+    cells += `<span class="ym${isReviewLesson(n)?' is-review':''}${done.has(n)?' is-done':''}${n===cur?' is-current':''}${wrote.has(n)?' has-journal':''}" data-lesson="${n}" title="Lesson ${n}${wrote.has(n)?' \u00b7 has a reflection':''}"></span>`;
   }
   $('year-map').innerHTML = cells;
   $('year-map').setAttribute('aria-label', `${done.size} of 365 lessons practiced. Currently on lesson ${cur}.`);
